@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J.A.R.V.I.S.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fondo: #02070d;
+    --cian: #3fd7ff;
+    --cian-suave: rgba(63, 215, 255, .18);
+    --ambar: #ffb547;
+    --texto: #cdefff;
+    --tenue: #5d8aa0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(ellipse at center, #06223a 0%, var(--fondo) 70%);
+    color: var(--texto);
+    font-family: "Rajdhani", system-ui, sans-serif;
+    font-size: 18px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+  }
+  body::before { /* rejilla holográfica */
+    content: ""; position: fixed; inset: 0; pointer-events: none;
+    background-image: linear-gradient(var(--cian-suave) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--cian-suave) 1px, transparent 1px);
+    background-size: 48px 48px; opacity: .25;
+    mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 24px; font-family: "Orbitron", sans-serif; letter-spacing: .2em;
+    border-bottom: 1px solid var(--cian-suave); font-size: 14px; color: var(--cian);
+  }
+  header .reloj { color: var(--tenue); }
+  main {
+    display: grid; grid-template-columns: 1fr minmax(320px, 440px); gap: 24px;
+    padding: 24px; min-height: 0;
+  }
+  .centro { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+
+  /* Reactor arc */
+  .reactor { position: relative; width: min(46vh, 340px); aspect-ratio: 1; cursor: pointer; border: 0; background: none; padding: 0; }
+  .anillo { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--cian); opacity: .55; }
+  .anillo.a1 { border-style: dashed; animation: girar 24s linear infinite; }
+  .anillo.a2 { inset: 9%; border-width: 6px; border-color: var(--cian) transparent var(--cian) transparent; animation: girar 9s linear infinite reverse; }
+  .anillo.a3 { inset: 20%; border: 1px dotted var(--cian); animation: girar 16s linear infinite; }
+  .nucleo {
+    position: absolute; inset: 32%; border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, var(--cian) 35%, rgba(63,215,255,.15) 70%);
+    box-shadow: 0 0 40px var(--cian), 0 0 90px rgba(63,215,255,.5);
+    transition: transform .15s;
+  }
+  .reactor[data-estado="escuchando"] .nucleo { animation: latir 1s ease-in-out infinite; }
+  .reactor[data-estado="pensando"] .a2 { animation-duration: 1.2s; }
+  .reactor[data-estado="hablando"] .nucleo { animation: latir .45s ease-in-out infinite; }
+  .reactor[data-estado="error"] { --cian: #ff5a5a; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  @keyframes latir { 50% { transform: scale(1.12); filter: brightness(1.4); } }
+
+  .estado { font-family: "Orbitron", sans-serif; letter-spacing: .25em; font-size: 13px; color: var(--cian); text-transform: uppercase; }
+  .subtitulo { min-height: 2.6em; max-width: 680px; text-align: center; font-size: 22px; line-height: 1.3; }
+
+  /* Panel lateral */
+  .panel {
+    border: 1px solid var(--cian-suave); background: rgba(3, 20, 34, .7);
+    display: flex; flex-direction: column; min-height: 0;
+    clip-path: polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  }
+  .panel h2 { margin: 0; padding: 12px 16px; font: 600 12px "Orbitron", sans-serif; letter-spacing: .2em; color: var(--cian); border-bottom: 1px solid var(--cian-suave); }
+  .log { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { line-height: 1.35; }
+  .msg .quien { font: 600 11px "Orbitron", sans-serif; letter-spacing: .15em; display: block; margin-bottom: 2px; }
+  .msg.usuario .quien { color: var(--ambar); }
+  .msg.jarvis .quien { color: var(--cian); }
+  .msg .accion { font-size: 14px; color: var(--tenue); }
+
+  footer { padding: 16px 24px 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  form { display: flex; gap: 8px; flex: 1; max-width: 760px; min-width: 260px; }
+  input[type=text] {
+    flex: 1; background: rgba(3,20,34,.8); border: 1px solid var(--cian-suave); color: var(--texto);
+    font: inherit; padding: 10px 14px; outline: none;
+  }
+  input[type=text]:focus { border-color: var(--cian); }
+  button.btn {
+    background: transparent; color: var(--cian); border: 1px solid var(--cian); font: 600 12px "Orbitron", sans-serif;
+    letter-spacing: .15em; padding: 10px 14px; cursor: pointer; text-transform: uppercase;
+  }
+  button.btn:hover, button.btn[aria-pressed="true"] { background: var(--cian); color: var(--fondo); }
+  .aviso { color: var(--ambar); font-size: 15px; text-align: center; }
+
+  @media (max-width: 820px) {
+    body { overflow: auto; }
+    main { grid-template-columns: 1fr; padding: 16px; }
+    .panel { max-height: 40vh; }
+    header, footer { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <span>J.A.R.V.I.S.</span>
+  <span class="reloj" id="reloj"></span>
+</header>
+
+<main>
+  <section class="centro">
+    <button class="reactor" id="reactor" data-estado="inactivo" aria-label="Hablar con Jarvis">
+      <span class="anillo a1"></span><span class="anillo a2"></span><span class="anillo a3"></span>
+      <span class="nucleo"></span>
+    </button>
+    <div class="estado" id="estado">En espera</div>
+    <div class="subtitulo" id="subtitulo">Toque el reactor o presione la barra espaciadora para hablar, señor.</div>
+    <div class="aviso" id="aviso" hidden></div>
+  </section>
+
+  <aside class="panel">
+    <h2>Registro</h2>
+    <div class="log" id="log"></div>
+  </aside>
+</main>
+
+<footer>
+  <form id="form">
+    <input type="text" id="entrada" placeholder="O escriba su orden aquí..." autocomplete="off">
+    <button class="btn" type="submit">Enviar</button>
+  </form>
+  <button class="btn" id="modoContinuo" aria-pressed="false" title='Escucha siempre y responde cuando dice "Jarvis"'>Modo "Jarvis"</button>
+  <button class="btn" id="silencio" aria-pressed="false">Silenciar voz</button>
+  <button class="btn" id="reiniciar">Nueva conversación</button>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const reactor = $("reactor"), estadoEl = $("estado"), subtitulo = $("subtitulo"), log = $("log");
+let ocupado = false, continuo = false, silenciado = false, hablando = false;
+
+function setEstado(estado, texto) {
+  reactor.dataset.estado = estado;
+  estadoEl.textContent = texto;
+}
+
+function agregar(quien, texto, acciones = []) {
+  const div = document.createElement("div");
+  div.className = "msg " + quien;
+  const etiqueta = document.createElement("span");
+  etiqueta.className = "quien";
+  etiqueta.textContent = quien === "usuario" ? "Usted" : "Jarvis";
+  div.append(etiqueta, document.createTextNode(texto));
+  for (const a of acciones) {
+    const s = document.createElement("div");
+    s.className = "accion";
+    s.textContent = "▸ " + a.herramienta.replaceAll("_", " ") + " " + JSON.stringify(a.entrada);
+    div.append(s);
+  }
+  log.append(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+setInterval(() => {
+  $("reloj").textContent = new Date().toLocaleString("es-PE", { weekday: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}, 1000);
+
+/* ---------- Voz de salida ---------- */
+let voz = null;
+function elegirVoz() {
+  const voces = speechSynthesis.getVoices().filter(v => v.lang.startsWith("es"));
+  voz = voces.find(v => /male|hombre|jorge|pablo|diego|raul|alvaro/i.test(v.name))
+     || voces.find(v => /es-(PE|MX|US|419)/i.test(v.lang)) || voces[0] || null;
+}
+if ("speechSynthesis" in window) { elegirVoz(); speechSynthesis.onvoiceschanged = elegirVoz; }
+
+function hablar(texto) {
+  return new Promise((ok) => {
+    if (silenciado || !("speechSynthesis" in window)) return ok();
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(texto);
+    if (voz) u.voice = voz;
+    u.lang = voz ? voz.lang : "es-ES";
+    u.rate = 1.05; u.pitch = 0.85;
+    hablando = true;
+    detenerEscucha();
+    setEstado("hablando", "Respondiendo");
+    u.onend = u.onerror = () => { hablando = false; ok(); };
+    speechSynthesis.speak(u);
+  });
+}
+
+/* ---------- Cerebro ---------- */
+async function enviar(texto) {
+  texto = texto.trim();
+  if (!texto || ocupado) return;
+  ocupado = true;
+  agregar("usuario", texto);
+  subtitulo.textContent = "«" + texto + "»";
+  setEstado("pensando", "Procesando");
+  try {
+    const r = await fetch("/api/chat", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mensaje: texto }),
+    });
+    const datos = await r.json();
+    const respuesta = datos.respuesta || datos.error || "Sin respuesta.";
+    agregar("jarvis", respuesta, datos.acciones || []);
+    subtitulo.textContent = respuesta;
+    await hablar(respuesta);
+    setEstado(r.ok ? "inactivo" : "error", r.ok ? "En espera" : "Error");
+  } catch (e) {
+    subtitulo.textContent = "No encuentro el servidor de Jarvis. ¿Está corriendo servidor.py?";
+    setEstado("error", "Sin conexión");
+  } finally {
+    ocupado = false;
+    if (continuo) iniciarEscucha();
+  }
+}
+
+/* ---------- Voz de entrada ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, escuchando = false;
+
+if (!SR) {
+  $("aviso").hidden = false;
+  $("aviso").textContent = "Este navegador no reconoce voz. Use Google Chrome o Microsoft Edge, o escriba abajo.";
+  $("modoContinuo").disabled = true;
+} else {
+  rec = new SR();
+  rec.lang = "es-PE";
+  rec.interimResults = true;
+  rec.onstart = () => { escuchando = true; if (!ocupado) setEstado("escuchando", continuo ? 'Diga "Jarvis..."' : "Escuchando"); };
+  rec.onend = () => {
+    escuchando = false;
+    if (!ocupado && !hablando) {
+      if (continuo) setTimeout(iniciarEscucha, 300);
+      else setEstado("inactivo", "En espera");
+    }
+  };
+  rec.onerror = (e) => {
+    if (e.error === "not-allowed") {
+      continuo = false; $("modoContinuo").setAttribute("aria-pressed", "false");
+      subtitulo.textContent = "Necesito permiso para usar el micrófono, señor.";
+    }
+  };
+  rec.onresult = (e) => {
+    const res = e.results[e.results.length - 1];
+    let texto = res[0].transcript;
+    if (!res.isFinal) { subtitulo.textContent = texto + "…"; return; }
+    if (continuo) {
+      const m = texto.match(/\b(jarvis|yarvis|charlie|jarbis)\b[,.\s]*(.*)/i);
+      if (!m) return;                     // ignorar lo que no empieza con "Jarvis"
+      texto = m[2] || "¿Está ahí?";
+    }
+    detenerEscucha();
+    enviar(texto);
+  };
+}
+
+function iniciarEscucha() {
+  if (!rec || escuchando || ocupado || hablando) return;
+  rec.continuous = continuo;
+  try { rec.start(); } catch (_) {}
+}
+function detenerEscucha() { if (rec && escuchando) rec.stop(); }
+
+reactor.addEventListener("click", () => {
+  if (hablando) { speechSynthesis.cancel(); return; }
+  escuchando ? detenerEscucha() : iniciarEscucha();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && document.activeElement !== $("entrada")) { e.preventDefault(); reactor.click(); }
+});
+
+$("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const t = $("entrada").value; $("entrada").value = "";
+  enviar(t);
+});
+$("modoContinuo").addEventListener("click", (e) => {
+  continuo = !continuo;
+  e.currentTarget.setAttribute("aria-pressed", String(continuo));
+  detenerEscucha();
+  if (continuo) setTimeout(iniciarEscucha, 300);
+});
+$("silencio").addEventListener("click", (e) => {
+  silenciado = !silenciado;
+  e.currentTarget.setAttribute("aria-pressed", String(silenciado));
+  if (silenciado) speechSynthesis.cancel();
+});
+$("reiniciar").addEventListener("click", async () => {
+  await fetch("/api/reiniciar", { method: "POST" });
+  log.innerHTML = "";
+  subtitulo.textContent = "Memoria de conversación borrada, señor.";
+});
+
+/* ---------- Recordatorios ---------- */
+setInterval(async () => {
+  try {
+    const { eventos } = await (await fetch("/api/eventos")).json();
+    for (const ev of eventos) {
+      const t = "Señor, le recuerdo: " + ev.mensaje;
+      agregar("jarvis", t); subtitulo.textContent = t;
+      await hablar(t);
+      setEstado("inactivo", "En espera");
+      if (continuo) iniciarEscucha();
+    }
+  } catch (_) {}
+}, 5000);
+</script>
+</body>
+</html>
